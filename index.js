@@ -26,6 +26,7 @@ async function run() {
   try {
     
     const tutorCollection = client.db("tutorBooking").collection("tutors");
+    const bookCollection = client.db("tutorBooking").collection("bookRecord");
     
 
     app.get('/findTutor', async (req, res)=>{
@@ -45,6 +46,13 @@ async function run() {
     app.post('/addTutorials', async (req, res)=>{
         const tutorialsData = req.body;
         const result = await tutorCollection.insertOne(tutorialsData);
+
+        res.send(result);
+    })
+    app.post('/bookTutorials', async (req, res)=>{
+        const bookData = req.body;
+        console.log(bookData);
+        const result = await bookCollection.insertOne(bookData);
 
         res.send(result);
     })
