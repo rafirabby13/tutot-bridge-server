@@ -56,6 +56,12 @@ async function run() {
 
         res.send(result);
     })
+
+    app.get('/bookedTutorials', async (req, res)=>{
+        const query = {}
+        const result = await bookCollection.find(query).toArray()
+        res.send(result)
+    })
     
     
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
