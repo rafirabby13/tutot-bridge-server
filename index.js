@@ -41,6 +41,13 @@ async function run() {
         const result = await tutorCollection.findOne(query)
         res.send(result)
     })
+
+    app.post('/addTutorials', async (req, res)=>{
+        const tutorialsData = req.body;
+        const result = await tutorCollection.insertOne(tutorialsData);
+
+        res.send(result);
+    })
     
     
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
