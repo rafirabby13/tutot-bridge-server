@@ -94,6 +94,40 @@ async function run() {
       const result = await tutorCollection.deleteOne(query);
       res.send(result);
     })
+    app.get("/updateTutorials/:id", async (req, res) => {
+        const id = req.params.id;
+        // console.log(id);
+        const query = { _id: new ObjectId(id) };
+  
+        const result = await tutorCollection.findOne(query);
+        // console.log(result);
+        res.send(result);
+      });
+
+    app.put('/updateTutorial/:id',async (req, res)=>{
+        const id = req.params.id;
+    //   console.log(id);
+    const data = req.body;
+    console.log(data);
+      const options = { upsert: true };
+
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          email: data.email,
+          name: data.name,
+          photo: data.photo,
+          language: data.language,
+          price: data.price,
+          description: data.description,
+          review: data.review
+        },
+      };
+
+      const result = await tutorCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
+
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
