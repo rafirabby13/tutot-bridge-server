@@ -75,7 +75,7 @@ async function run() {
       const result = await tutorCollection.find(query).toArray();
       res.send(result);
     });
-    app.get("/tutor/:id", async (req, res) => {
+    app.get("/tutor/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const query = { _id: new ObjectId(id) };
@@ -84,7 +84,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/addTutorials", async (req, res) => {
+    app.post("/addTutorials",verifyToken, async (req, res) => {
       const tutorialsData = req.body;
       const result = await tutorCollection.insertOne(tutorialsData);
 
@@ -98,7 +98,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/bookedTutorials", async (req, res) => {
+    app.get("/bookedTutorials",verifyToken, async (req, res) => {
         const email = req.query.loggedInUserEmail;
       const query = {
         loggedInUserEmail: email
@@ -184,6 +184,25 @@ async function run() {
       const result = await tutorCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
+
+
+    app.get('/search', async(req, res)=>{
+        const lang = req.query.q;
+        console.log(lang);
+        const query = {
+            language: { $regex: lang, $options: 'i' }
+        };
+        
+  
+        const result = await tutorCollection.find(query).toArray();
+        console.log(result);
+        res.send(result);
+    })
+
+
+
+
+
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
