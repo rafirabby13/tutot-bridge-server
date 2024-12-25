@@ -90,7 +90,7 @@ async function run() {
 
       res.send(result);
     });
-    app.post("/bookTutorials", async (req, res) => {
+    app.post("/bookTutorials",verifyToken, async (req, res) => {
       const bookData = req.body;
       console.log(bookData);
       const result = await bookCollection.insertOne(bookData);
