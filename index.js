@@ -77,7 +77,7 @@ async function run() {
     });
     app.get("/tutor/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+    //   console.log(id);
       const query = { _id: new ObjectId(id) };
 
       const result = await tutorCollection.findOne(query);
@@ -92,7 +92,7 @@ async function run() {
     });
     app.post("/bookTutorials",verifyToken, async (req, res) => {
       const bookData = req.body;
-      console.log(bookData);
+    //   console.log(bookData);
       const result = await bookCollection.insertOne(bookData);
 
       res.send(result);
@@ -109,22 +109,22 @@ async function run() {
       res.send(result);
     });
 
-    // app.patch("/tutor/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const { review } = req.body;
-    //   // console.log(id);
-    //   const query = { _id: new ObjectId(id) };
-    //   const options = { upsert: true };
-    //   const updateDoc = {
-    //     $inc: {
-    //       review: 1,
-    //     },
-    //   };
-    //   const result = await tutorCollection.updateOne(query, updateDoc, options);
-    //   console.log(result);
+    app.patch("/tutor/:id", async (req, res) => {
+      const id = req.params.id;
+      
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: false };
+      const updateDoc = {
+        $inc: {
+          review: 1,
+        },
+      };
+      const result = await bookCollection.updateOne(query, updateDoc, options);
+      console.log(result);
 
-    //   res.send(result);
-    // });
+      res.send(result);
+    });
 
     app.get("/tutorr",verifyToken, async (req, res) => {
       const email = req.query.email;
@@ -188,14 +188,14 @@ async function run() {
 
     app.get('/search', async(req, res)=>{
         const lang = req.query.q;
-        console.log(lang);
+        // console.log(lang);
         const query = {
             language: { $regex: lang, $options: 'i' }
         };
         
   
         const result = await tutorCollection.find(query).toArray();
-        console.log(result);
+        // console.log(result);
         res.send(result);
     })
 
