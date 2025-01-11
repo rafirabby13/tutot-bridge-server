@@ -7,31 +7,35 @@ const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-app.use(cors({
-    origin: ['http://localhost:5173'],
-    credentials:  true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://online-tutor-booking.web.app",
+      "https://online-tutor-booking.firebaseapp.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
 
-const verifyToken=(req, res, next)=>{
-    const token = req.cookies?.token
-
-    if (!token) {
-        return res.status(401).send({message: "Unauthorize Access"})
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorize Access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorize Access" });
     }
-    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded)=>{
-        if (err) {
-            return res.status(401).send({message: "Unauthorize Access"})
-        }
 
-        req.user = decoded
+    req.user = decoded;
 
-        next()
-    })
-
-}
+    next();
+  });
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bbiovs6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -57,53 +61,57 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
 
-    app.post('/logout', (req, res)=>{
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: false
+    app.post("/logout", (req, res) => {
+      res
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
-        .send({success: true})
-    })
+        .send({ success: true });
+    });
 
     app.get("/findTutor", async (req, res) => {
       const query = {};
+
       const result = await tutorCollection.find(query).toArray();
+      console.log(result);
       res.send(result);
     });
-    app.get("/tutor/:id",verifyToken, async (req, res) => {
+    app.get("/tutor/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
-    //   console.log(id);
+      //   console.log(id);
       const query = { _id: new ObjectId(id) };
 
       const result = await tutorCollection.findOne(query);
       res.send(result);
     });
 
-    app.post("/addTutorials",verifyToken, async (req, res) => {
+    app.post("/addTutorials", verifyToken, async (req, res) => {
       const tutorialsData = req.body;
       const result = await tutorCollection.insertOne(tutorialsData);
 
       res.send(result);
     });
-    app.post("/bookTutorials",verifyToken, async (req, res) => {
+    app.post("/bookTutorials", verifyToken, async (req, res) => {
       const bookData = req.body;
-    //   console.log(bookData);
+      //   console.log(bookData);
       const result = await bookCollection.insertOne(bookData);
 
       res.send(result);
     });
 
-    app.get("/bookedTutorials",verifyToken, async (req, res) => {
-        const email = req.query.loggedInUserEmail;
+    app.get("/bookedTutorials", verifyToken, async (req, res) => {
+      const email = req.query.loggedInUserEmail;
       const query = {
-        loggedInUserEmail: email
+        loggedInUserEmail: email,
       };
-      
 
       const result = await bookCollection.find(query).toArray();
       res.send(result);
@@ -111,7 +119,7 @@ async function run() {
 
     app.patch("/tutor/:id", async (req, res) => {
       const id = req.params.id;
-      
+
       console.log(id);
       const query = { _id: new ObjectId(id) };
       const options = { upsert: false };
@@ -126,7 +134,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/tutorr",verifyToken, async (req, res) => {
+    app.get("/tutorr", verifyToken, async (req, res) => {
       const email = req.query.email;
       console.log(email);
 
@@ -136,7 +144,7 @@ async function run() {
       console.log(req.cookies?.token);
       console.log(req.user.email);
       if (req.user.email !== req.query.email) {
-        return res.status(403).send({message: 'forbidden'})
+        return res.status(403).send({ message: "forbidden" });
       }
 
       const result = await tutorCollection.find(query).toArray();
@@ -185,24 +193,17 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/search", async (req, res) => {
+      const lang = req.query.q;
+      // console.log(lang);
+      const query = {
+        language: { $regex: lang, $options: "i" },
+      };
 
-    app.get('/search', async(req, res)=>{
-        const lang = req.query.q;
-        // console.log(lang);
-        const query = {
-            language: { $regex: lang, $options: 'i' }
-        };
-        
-  
-        const result = await tutorCollection.find(query).toArray();
-        // console.log(result);
-        res.send(result);
-    })
-
-
-
-
-
+      const result = await tutorCollection.find(query).toArray();
+      // console.log(result);
+      res.send(result);
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
